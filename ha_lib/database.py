@@ -51,6 +51,10 @@ def get_last_value():
     return output[0], output[1]
 
 def add_row(recieved,send,timestamp=None,special=0):
+    # Check if the database is enabled
+    if not processor.config.getboolean('DATABASE','enabled'):
+        return
+
     # Set timestamp in miliseconds if it ain't set yet
     if timestamp is None:
         timestamp = int(round(time.time()*1000))

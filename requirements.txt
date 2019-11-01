@@ -1,2 +1,3 @@
 configparser==4.0.2
 colorama==0.4.1
+adafruit-io==2.3.2
