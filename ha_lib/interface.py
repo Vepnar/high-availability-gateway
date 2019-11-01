@@ -39,6 +39,19 @@ def recieve_values():
         logger.err('Couldn\'t recieve data on the interface')
         return 0, 0
 
+def check_disabletrigger(total):
+    if not processor.config.getboolean('NETWORK', 'disabletrigger'):
+        return
+
+    threshold = processor.config.getint('NETWORK', 'disablethreshold')
+    command = processor.config.get('NETWORK','disablecommand')
+
+    if total > threshold:
+        logger.log('The interface passed the second threshold and the command is executed')
+        pipe = Popen(command, shell=True, stdout=PIPE)
+        command_output = pipe.communicate()[0].decode("ascii")
+        processor.config.set('NETWORK','disabletrigger','False')
+
 # Make the large numbers more readable
 def byte_formatter(value):
     # Could add more options here but only in the power of 3
@@ -47,7 +60,7 @@ def byte_formatter(value):
     size = len(str(value))
 
     for i in reversed(range(options)):
-        if value >= 10 ** (3 * i):
+        if value >= 1000 ** i:
             # Shrink values and return them
             reduced = value / 1000 ** i
             return reduced , byte_units[i]

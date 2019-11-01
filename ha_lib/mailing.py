@@ -172,7 +172,7 @@ def check_threshold(rx,tx,last):
             logger.warn('Couldn\'t send the threshold E-Mail')
             return
 
-        logger.info('Threshold E-Mail send!')
+        logger.log('Threshold E-Mail send!')
         # Update settings when the email is send
         if processor.config.getboolean('EMAIL','resetaftertrigger'):
             processor.config.set('EMAIL','NotificationThreshold',threshold*2)
