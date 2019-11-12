@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Author: Arjan de Haan (Vepnar)
+
 from colorama import Fore, Style
 from datetime import datetime
 from . import processor
