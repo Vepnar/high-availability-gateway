@@ -12,12 +12,17 @@ def infloop():
 
     # Enable rxtxstart when this script runs on startup
     if config.getboolean('NETWORK','rxtxstart'):
+        # Clean up old data
+        database.move_old_data()
         total_rx, total_tx = total_rx + last_rx, total_tx + last_tx
         database.add_row(total_rx, total_tx, special=1)
         interface.print_usage(total_rx, total_tx)
         time.sleep(delay)
 
     while(True):
+        # Clean up old data
+        database.move_old_data()
+
         # Recieve new values
         new_rx, new_tx = interface.recieve_values()
 

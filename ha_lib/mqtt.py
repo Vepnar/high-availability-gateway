@@ -1,6 +1,6 @@
 from Adafruit_IO import MQTTClient as mqtt
 from subprocess import Popen, PIPE
-from . import logger, processor
+from . import logger, processor, database
 import sqlite3
 import os.path
 import struct
@@ -39,8 +39,6 @@ def enable():
 
 
 def update_data(rx, tx, tt):
-    global client
-
     # Check if MQTT is enabled
     cfg = processor.config
     if not cfg.getboolean('MQTT', 'enabled'):
@@ -48,16 +46,39 @@ def update_data(rx, tx, tt):
 
     # Convert values to mbits/s
     delay = cfg.getint('NETWORK', 'MeasureDelay')
-    rx = round(rx / 12500.0 / delay, 2)
-    tx = round(tx / 125000.0 / delay, 2)
-    tt = round(tt / 100000, 2)
+    rx = rx / 125000.0 / delay
+    tx = tx / 125000.0 / delay
+    tt = tt / 1000000.0
+    tt_today = -1
+
+    start_values = database.get_start_value()
+
+    if start_values[0] != 0:
+        tt_today =  tt-((start_values[1]+ start_values[2]) / 1000000.0)
 
     # Send values
-    client.publish(cfg.get('MQTT', 'recievepath'), rx)
-    client.publish(cfg.get('MQTT', 'sendpath'), tx)
-    client.publish(cfg.get('MQTT', 'RecievePlusSendPath'), rx+tx)
-    client.publish(cfg.get('MQTT', 'totalnetworkusagepath'), tt)
+    try_update_data('recievepath',rx)
+    try_update_data('sendpath',tx)
+    try_update_data('recieveplussendpath',rx+tx)
+    try_update_data('totalnetworkusagepath',tt)
+    try_update_data('todaynetworkusagepath', tt_today)
 
+def try_update_data(nick, data):
+    global client
+
+    # Recieve path from config file
+    path = processor.config.get('MQTT', nick.lower())
+
+    # Cancel execution when there is no path found
+    if path is None:
+        return
+
+    # Don't publish anything when the data is negative
+    if 0 > data:
+        return
+
+    # Publish data on specified path
+    client.publish(path,round(data,2))
 
 # Some nice disconnect message
 def on_disconnect(client):
@@ -76,7 +97,7 @@ def on_message(client, feed_id, payload):
 
     # Check is command is added in the config file
     if not f'command{payload}' in processor.config['MQTTNUMPAD']:
-        logger.warn('Numpad {payload} is pressed but there is no command')
+        logger.warn(f'Numpad {payload} is pressed but there is no command')
         return
 
     # Execute command when found
