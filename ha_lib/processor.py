@@ -20,17 +20,16 @@ def infloop():
         time.sleep(delay)
 
     while(True):
-        # Clean up old data
-
+        
         # Recieve new values
         new_rx, new_tx = interface.recieve_values()
 
-        # Calculate new values for the charts
+        # Calculate new values
         calc_rx, calc_tx = new_rx - last_rx, new_tx - last_tx
         total_rx, total_tx = database.move_old_data(total_rx + calc_rx, total_tx + calc_tx)
         last_rx, last_tx = new_rx, new_tx
 
-        # We don't want any negative values in our charts
+        # We don't want any negative values
         calc_tx = calc_tx if calc_tx > 0 else 0
         calc_rx = calc_rx if calc_rx > 0 else 0
 
@@ -61,6 +60,7 @@ def start():
 
     logger.log('Measuring started')
 
+    # Disable errors caused by keyboard interrupts
     try:
         infloop()
     except KeyboardInterrupt as e:

@@ -24,6 +24,8 @@ def enable():
         logger.err(f'No read access on "{file}"')
         return
 
+    # Test email formatter
+    # There could be some problems with the config you didn't configure right
     try:
         format_email(0,0,0)
     except Exception as e:
@@ -31,7 +33,7 @@ def enable():
         print(e)
         logger.err('E-Mail formatter crashes')
 
-
+    # Connect to the SMTP server
     server = connect(enable_run=True)
     if server is None:
         return
@@ -93,7 +95,7 @@ def login(server, enable_run=False):
             logger.warn('Couldn\'t login in the smtp server')
             return False
 
-
+# Generate all values we want in our email
 def format_email(rx, tx, last):
 
     # Convert rx and tx to some pretty values

@@ -19,11 +19,6 @@ def enable():
     # Create client and set username and key
     client = mqtt(config.get('MQTT', 'username'), config.get('MQTT', 'key'))
 
-    # Set handlers
-    client.on_connect = on_connect
-    client.on_message = on_message
-    client.on_disconnect = on_disconnect
-
     # Connect to the server
     try:
         keepalive = config.getint('MQTT', 'keepalive')
@@ -34,7 +29,12 @@ def enable():
         sys.exit(0)
     logger.debug('MQTT enabled')
 
+    # Enable mqtt numpad
     if config.getboolean('MQTTNUMPAD', 'enabled'):
+        # Set handlers for mqtt numpad
+        client.on_connect = on_connect
+        client.on_message = on_message
+        client.on_disconnect = on_disconnect
         client.loop_background()
 
 
@@ -51,8 +51,9 @@ def update_data(rx, tx, tt):
     tt = tt / 1000000.0
     tt_today = -1
 
+    # Calculate today's usage based on values in the database
+    # This function doesnt work when the database option is disabled
     start_values = database.get_start_value()
-
     if start_values[0] != 0:
         tt_today =  tt-((start_values[1]+ start_values[2]) / 1000000.0)
 
@@ -78,6 +79,7 @@ def try_update_data(nick, data):
         return
 
     # Publish data on specified path
+    # Round values to 2 digits
     client.publish(path,round(data,2))
 
 # Some nice disconnect message
@@ -101,6 +103,7 @@ def on_message(client, feed_id, payload):
         return
 
     # Execute command when found
+    # TODO add more functionality within the application
     Popen(processor.config.get('MQTTNUMPAD',
                                f'command{payload}'), shell=True, stdout=PIPE)
     logger.debug(f'Numpad {payload} is executed')
