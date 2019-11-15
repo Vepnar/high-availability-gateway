@@ -133,11 +133,8 @@ def move_old_data(rx, tx):
 
     old_timestamp, _, _ = get_start_value()
 
-    # Recieve latest value in today's records
-    recieved, send = get_last_value()
-
     if old_timestamp == 0:
-        return recieved, send
+        return rx, tx
 
     # Check if there is a new day
     old_date = datetime.fromtimestamp(old_timestamp)
@@ -171,7 +168,7 @@ def move_old_data(rx, tx):
 
     # Check if we are in a new day
     if abs(new_date - old_date).days < 1:
-        return recieved, send
+        return rx, tx
 
     # Create new row in daylogger
     sql = 'INSERT INTO DAYLOGS (TIMESTAMP, RECIEVED, SEND) ' \
