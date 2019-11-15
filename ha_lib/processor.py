@@ -11,11 +11,11 @@ def infloop():
     # We first start by settings up starting values
 
     # We start by moving our old data to another table.
-    # And recieve the total recieve and send numbers.
-    # Recieve and send will be 0 when we are in a month, because we measure network usage per month.
+    # And receive the total receive and send numbers.
+    # Receive and send will be 0 when we are in a month, because we measure network usage per month.
     total_rx, total_tx = database.move_old_data(*database.get_last_value())
 
-    # Here we recieve the amount of data recieved and send by the interface.
+    # Here we receive the amount of data received and send by the interface.
     # This data is parsed for the ifconfig command and only works on 1 interface.
     # You can set this up in the config file.
     last_rx, last_tx = interface.recieve_values()
@@ -45,7 +45,7 @@ def infloop():
     while(True):
         
         # First we start by capturing new data from our dear interface
-        new_rx, new_tx = interface.recieve_values()
+        new_rx, new_tx = interface.receive_values()
 
         # Now we calculate the difference between our new values and our old values
         calc_rx, calc_tx = new_rx - last_rx, new_tx - last_tx
@@ -86,7 +86,7 @@ def start():
     global config
 
     # First we need to parse the config file.
-    # The file that we will be parsing is "config.cfg" we print a nice debug messege after we are done parsing the file.
+    # The file that we will be parsing is "config.cfg" we print a nice debug message after we are done parsing the file.
     config = configparser.ConfigParser()
     config.read('config.cfg')
     logger.debug('Config loaded')

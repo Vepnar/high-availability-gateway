@@ -32,7 +32,7 @@ def enable():
             return
 
         # When need to create a new database file because it doesn't exist.
-        # We first start by logging to the user about the fact that it doesnt exist.
+        # We first start by logging to the user about the fact that it doesn't exist.
         logger.debug('Creating new database file')
 
         # Now we connect to the database file.
@@ -42,7 +42,7 @@ def enable():
         # We first create a table for the records of today.
         db.execute('''CREATE TABLE RECORDS ( \
         TIMESTAMP INTEGER NOT NULL PRIMARY KEY, \
-        RECIEVED INTEGER NOT NULL, \
+        RECEIVED INTEGER NOT NULL, \
         SEND INTEGER NOT NULL,\
         SPECIAL INTEGER NOT NULL)
         ''')
@@ -50,14 +50,14 @@ def enable():
         # Then we will create a table with the daily logs.
         db.execute('''CREATE TABLE DAYLOGS ( \
         TIMESTAMP INTEGER NOT NULL PRIMARY KEY, \
-        RECIEVED INTEGER NOT NULL, \
+        RECEIVED INTEGER NOT NULL, \
         SEND INTEGER NOT NULL)
         ''')
 
         # And the last thing we add is the monthly logs.
         db.execute('''CREATE TABLE MONTHLOGS ( \
         TIMESTAMP INTEGER NOT NULL PRIMARY KEY, \
-        RECIEVED INTEGER NOT NULL, \
+        RECEIVED INTEGER NOT NULL, \
         SEND INTEGER NOT NULL)
         ''')
 
@@ -75,7 +75,7 @@ def enable():
         processor.config.set('DATABASE','enabled','False')
         logger.err('Can\'t open the database. Check if this user has permissions to write')
 
-# This function will recieve the total amount of network usage from the database.
+# This function will receive the total amount of network usage from the database.
 def get_last_value():
     
     # Then we check if this module is enabled and return 0,0 when it ain't enabled.
@@ -85,8 +85,8 @@ def get_last_value():
     # We now need to access our database. You can only access a database with sql commands.
     # This command will ask for the an item in our records table with the highest timestamp.
     # Which means that it will get the latest added item from our database.
-    # After the command is processed we execute it and recieve only 1 item.
-    sql = 'SELECT RECIEVED, SEND FROM RECORDS WHERE TIMESTAMP = (SELECT MAX(TIMESTAMP)  FROM RECORDS);'
+    # After the command is processed we execute it and receive only 1 item.
+    sql = 'SELECT RECEIVED, SEND FROM RECORDS WHERE TIMESTAMP = (SELECT MAX(TIMESTAMP)  FROM RECORDS);'
     output = db.execute(sql).fetchone()
 
     # Here we check if the command we executed before actually gave us any rows.
@@ -94,7 +94,7 @@ def get_last_value():
         # It looks like it didn't gave us any rows that means there are no rows in the records table.
         # We now look in the daylog table to see if there are any rows in there.
         # We do the same as in the other SQL command but now for the DAYLOGS table.
-        sql = 'SELECT RECIEVED, SEND FROM DAYLOGS WHERE TIMESTAMP = (SELECT MAX(TIMESTAMP)  FROM RECORDS);'
+        sql = 'SELECT RECEIVED, SEND FROM DAYLOGS WHERE TIMESTAMP = (SELECT MAX(TIMESTAMP)  FROM RECORDS);'
         output = db.execute(sql).fetchone()
         
         # We check if this SQL commands returns anything.
@@ -117,8 +117,8 @@ def get_start_value():
         return 0,0,0
 
     # Now we prepare another SQL command to ask for the first item added to the records of today
-    # After that we execute the command and recieve only 1 value. the first one added
-    sql = 'SELECT TIMESTAMP,RECIEVED,SEND FROM RECORDS WHERE TIMESTAMP = (SELECT MIN(TIMESTAMP)  FROM RECORDS);'
+    # After that we execute the command and receive only 1 value. the first one added
+    sql = 'SELECT TIMESTAMP,RECEIVED,SEND FROM RECORDS WHERE TIMESTAMP = (SELECT MIN(TIMESTAMP)  FROM RECORDS);'
     output = db.execute(sql).fetchone()
 
     # Now we check if there is anything added today, and return 3 zeros when it's not
@@ -140,7 +140,7 @@ def get_timestamps():
     daily = 0
 
     # Now we prepare another SQL command to ask for the first item added to the records of today.
-    # After that we execute the command and recieve only 1 value. the first one added.
+    # After that we execute the command and receive only 1 value. the first one added.
     sql = 'SELECT TIMESTAMP FROM RECORDS WHERE TIMESTAMP = (SELECT MIN(TIMESTAMP)  FROM RECORDS);'
     output = db.execute(sql).fetchone()
 
@@ -163,21 +163,21 @@ def get_timestamps():
 
 # This is the function that will add the data to the database.
 # To be specific to the todays record tables.
-def add_row(recieved,send,timestamp=None,special=0):
+def add_row(received,send,timestamp=None,special=0):
     # Then we check if this module is enabled.
     if not processor.config.getboolean('DATABASE','enabled'):
         return
 
     # Now we check if the function who called us gave us a time variable.
     if timestamp is None:
-        # Looks like we dont got any :(
+        # Looks like we don't got any :(
         # So we have to make our own from time and convert it to an integer because time by default returns a float.
         timestamp = int(time.time())
     
-    # Now we need to prepare a sql with our timestamp, recieved bytes send bytes and our special tag in it.
+    # Now we need to prepare a sql with our timestamp, received bytes send bytes and our special tag in it.
     # The special tag is currently only for showing the database when the system booted.
-    sql = 'INSERT INTO RECORDS (TIMESTAMP, RECIEVED, SEND, SPECIAL) ' \
-        f'VALUES({timestamp}, {recieved}, {send},{special});'
+    sql = 'INSERT INTO RECORDS (TIMESTAMP, RECEIVED, SEND, SPECIAL) ' \
+        f'VALUES({timestamp}, {received}, {send},{special});'
 
     # Now we enter a safe environment because there could be some things that could go wrong here.
     # For example when we don't have any writing rights or when the disk is full.
@@ -195,15 +195,15 @@ def add_row(recieved,send,timestamp=None,special=0):
 # It will move data and delete data so the database doesn't get too big.
 def move_old_data(rx, tx):
 
-    # First of all we check if this module is enabled in the config file and return the recieve and send values when it's not.
+    # First of all we check if this module is enabled in the config file and return the receive and send values when it's not.
     if not processor.config.getboolean('DATABASE','enabled'):
         return rx,tx
 
     # First of all we need to see when the first row was added today and the first row added to the daily table.
-    # So we call the first row and recieve their timestamps.
+    # So we call the first row and receive their timestamps.
     today_timestamp, daily_timestamp = get_timestamps()
 
-    # Return the recieve and send values when the timestamp returns zero. This only happens when there is no row found.
+    # Return the receive and send values when the timestamp returns zero. This only happens when there is no row found.
     if today_timestamp == 0:
         return rx, tx
 
@@ -211,8 +211,8 @@ def move_old_data(rx, tx):
     today_date = datetime.fromtimestamp(today_timestamp)
     daily_date = datetime.fromtimestamp(daily_timestamp)
 
-    # Here we get our recieved and send data from the database. We don't need it right now but it will be usefull later.
-    recieved, send = get_last_value()
+    # Here we get our received and send data from the database. We don't need it right now but it will be usefull later.
+    received, send = get_last_value()
 
     # We also need a datetime from now and convert it to a timestamp.
     # The timestamp is used later for formatting into SQL commands.
@@ -225,8 +225,8 @@ def move_old_data(rx, tx):
         
         # Here we format the values we got earlier into one new sql command.
         # This command will add a new row in the monthly records.
-        sql = 'INSERT INTO MONTHLOGS (TIMESTAMP, RECIEVED, SEND) ' \
-        f'VALUES({timestamp}, {recieved}, {send});'
+        sql = 'INSERT INTO MONTHLOGS (TIMESTAMP, RECEIVED, SEND) ' \
+        f'VALUES({timestamp}, {received}, {send});'
         db.execute(sql)
 
         # Here we delete the rows in the daily and todays records.
@@ -250,16 +250,16 @@ def move_old_data(rx, tx):
         # Return 2 zeros to reset the current monthly counter
         return 0, 0
 
-    # Here we compare the current day with the day we recieved in the database.
+    # Here we compare the current day with the day we received in the database.
     if abs(new_date - today_date).days < 1:
-        # When the difference is less than 1 we will return the recieved bytes and the send bytes.
+        # When the difference is less than 1 we will return the received bytes and the send bytes.
         # Less than one means today
         return rx, tx
 
     # When it is more than 1 we need to add a new row to the daily logger.
-    # We start by making an new sql command with todays timestamp, the recieved bytes, and the send bytes.
-    sql = 'INSERT INTO DAYLOGS (TIMESTAMP, RECIEVED, SEND) ' \
-        f'VALUES({timestamp}, {recieved}, {send});'
+    # We start by making an new sql command with todays timestamp, the received bytes, and the send bytes.
+    sql = 'INSERT INTO DAYLOGS (TIMESTAMP, RECEIVED, SEND) ' \
+        f'VALUES({timestamp}, {received}, {send});'
 
     # Now we execute the just crafted sql command and delete all values stored in todays records.
     db.execute(sql)
@@ -276,7 +276,7 @@ def move_old_data(rx, tx):
     except:
         logger.warn('Couldn\'t write to the database')
     
-    # Return the recieved bytes and the send bytes so it can be used later
+    # Return the received bytes and the send bytes so it can be used later
     return rx, tx
     
 
