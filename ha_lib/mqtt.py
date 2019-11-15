@@ -48,9 +48,9 @@ def update_data(rx, tx, tt):
 
     # Convert values to mbits/s
     delay = cfg.getint('NETWORK', 'MeasureDelay')
-    rx = round(rx / 12500.0 / delay, 2)
+    rx = round(rx / 125000.0 / delay, 2)
     tx = round(tx / 125000.0 / delay, 2)
-    tt = round(tt / 100000, 2)
+    tt = round(tt / 1000000, 2)
 
     # Send values
     client.publish(cfg.get('MQTT', 'recievepath'), rx)
@@ -76,7 +76,7 @@ def on_message(client, feed_id, payload):
 
     # Check is command is added in the config file
     if not f'command{payload}' in processor.config['MQTTNUMPAD']:
-        logger.warn('Numpad {payload} is pressed but there is no command')
+        logger.warn(f'Numpad {payload} is pressed but there is no command')
         return
 
     # Execute command when found
