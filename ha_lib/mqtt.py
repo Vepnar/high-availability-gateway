@@ -39,8 +39,6 @@ def enable():
 
 
 def update_data(rx, tx, tt):
-    global client
-
     # Check if MQTT is enabled
     cfg = processor.config
     if not cfg.getboolean('MQTT', 'enabled'):
@@ -53,11 +51,23 @@ def update_data(rx, tx, tt):
     tt = round(tt / 1000000, 2)
 
     # Send values
-    client.publish(cfg.get('MQTT', 'recievepath'), rx)
-    client.publish(cfg.get('MQTT', 'sendpath'), tx)
-    client.publish(cfg.get('MQTT', 'RecievePlusSendPath'), rx+tx)
-    client.publish(cfg.get('MQTT', 'totalnetworkusagepath'), tt)
+    try_update_data('recievepath',rx)
+    try_update_data('sendpath',tx)
+    try_update_data('recieveplussendpath',rx+tx)
+    try_update_data('totalnetworkusagepath',tt)
 
+def try_update_data(nick, data):
+    global client
+
+    # Recieve path from config file
+    path = processor.config.get('MQTT', nick.lower())
+
+    # Cancel execution when there is no path found
+    if path is None:
+        return
+
+    # Publish data on specified path
+    client.publish(path,data)
 
 # Some nice disconnect message
 def on_disconnect(client):
