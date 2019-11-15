@@ -113,6 +113,9 @@ def move_old_data():
 
     old_timestamp, _, _ = get_start_value()
 
+    if old_timestamp == 0:
+        return
+
     # Check if there is a new day
     old_date = datetime.fromtimestamp(old_timestamp)
     new_date = datetime.now()
@@ -127,7 +130,7 @@ def move_old_data():
     # Create new row in daylogger
     sql = 'INSERT INTO DAYLOGS (TIMESTAMP, RECIEVED, SEND) ' \
         f'VALUES({timestamp}, {recieved}, {send});'
-        
+
     # Add new row to day logger and remove all information about today
     db.execute(sql)
     db.execute('DELETE FROM RECORDS')
