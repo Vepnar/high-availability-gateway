@@ -1,12 +1,16 @@
-import configparser
+# Author: Arjan de Haan (Vepnar)
+
 from . import logger, database, interface, mailing, mqtt
+from contextlib import suppress
+import configparser
+import asyncio
 import time
 
 # Here we store a global config file. all modules can access this file
 config = None
 
 # This is the actual loop where this program loops trough all its gatherd data and processes it
-def infloop():
+async def measure_loop():
     
     # We first start by settings up starting values
 
@@ -23,10 +27,10 @@ def infloop():
     # Here we get the delay between each measurement this delay is stored in the config.
     delay = config.getint('NETWORK', 'measuredelay')
 
-    # rxtxstart is the option that you should enable when this application starts at boot. 
+    # Startonboot is the option that you should enable when this application starts at boot. 
     # This application isn't the quickest on the the planet so it could've missed some bytes.
     # That's why this part of the function exists. it adds the missed bytes to the database
-    if config.getboolean('NETWORK','rxtxstart'):
+    if config.getboolean('NETWORK','startonboot'):
 
         # Here we add all potential missed bytes to our total amount of bytes
         total_rx, total_tx = total_rx + last_rx, total_tx + last_tx
@@ -39,7 +43,7 @@ def infloop():
         interface.print_usage(total_rx, total_tx)
 
         # And now we wait for our set delay
-        time.sleep(delay)
+        await asyncio.sleep(delay)
 
     # This is the infinite loop were we all waited for
     while(True):
@@ -78,14 +82,17 @@ def infloop():
         interface.print_usage(total_rx,total_tx)
 
         # And now the last thing!!! We wait a set amount of time before we start this loop again
-        time.sleep(delay)
+        await asyncio.sleep(delay)
 
 
-# This is where it all starts
+# This is where it all starts 
 def start():
     global config
 
-    # First we need to parse the config file.
+    # First we need to start by making an asynchronous loop
+    loop = asyncio.get_event_loop()
+
+    # After that we need to parse the config file.
     # The file that we will be parsing is "config.cfg" we print a nice debug message after we are done parsing the file.
     config = configparser.ConfigParser()
     config.read('config.cfg')
@@ -94,22 +101,21 @@ def start():
     # Now we start each module one by one
     # This will only initialize the modules and not actually loop them
     # Each module can be disabled in the config. The module will check if it is disabled by itself in the enable function
-    database.enable()
-    interface.enable()
-    mailing.enable()
-    mqtt.enable()
+    database.enable(loop)
+    interface.enable(loop)
+    mailing.enable(loop)
+    mqtt.enable(loop)
 
     # After all modules are initialized we will display a message to the user
     logger.log('Measuring started')
 
-    # This is where we start the actual loop starts
-    # We don't want any nasty keyboard interrupt logs in the terminal that's why we capture it in a try-catch block
-    try:
-       
-        infloop()
-    except KeyboardInterrupt as e:
+    # This is where we start the actual asynchronous loop starts
+    # suppress is a better way to ignore a exceptions for example a keyboardinterrupt
+    with suppress(KeyboardInterrupt):
+        loop.run_until_complete(measure_loop())
 
-        # Here we print a message to the used about the program shutting down
-        logger.log('Shutting down...')
+    # Close the actual asynchronous to clean everything up and message to the user about the status of the program
+    loop.close()
+    logger.log('Shutting down...')
 
 

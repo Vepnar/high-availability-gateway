@@ -5,7 +5,7 @@ from datetime import datetime
 from . import processor, logger, interface
 
 
-def enable():
+def enable(loop):
     # Check if module is enabled
     if not processor.config.getboolean('EMAIL', 'enabled'):
         return

@@ -8,7 +8,7 @@ import time
 db = None
 
 # This is where the database will initialize.
-def enable():
+def enable(loop):
     # We first start by accessing the global variable database.
     global db
 
