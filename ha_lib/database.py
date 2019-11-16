@@ -107,25 +107,40 @@ def add_row(recieved,send,timestamp=None,special=0):
         logger.err('Couldn\'t write to the database')
         processor.config.set('DATABASE','enabled','False')
 
-def move_old_data():
+def move_old_data(rx, tx):
     if not processor.config.getboolean('DATABASE','enabled'):
-        return
+        return rx,tx
 
     old_timestamp, _, _ = get_start_value()
 
+    # Recieve latest value in today's records
+    recieved, send = get_last_value()
+
     if old_timestamp == 0:
-        return
+        return recieved, send
 
     # Check if there is a new day
     old_date = datetime.fromtimestamp(old_timestamp)
     new_date = datetime.now()
     timestamp = int(round(datetime.timestamp(new_date)))
 
-    if(abs(new_date - old_date).days < 1):
-        return
+    if old_date.month is not new_date.month:
 
-    # Recieve latest value in today's records
-    recieved, send = get_last_value()
+        # Set new month values
+        recieved, send = get_last_value()
+        sql = 'INSERT INTO MONTHLOGS (TIMESTAMP, RECIEVED, SEND) ' \
+        f'VALUES({timestamp}, {recieved}, {send});'
+
+        db.execute('DELETE FROM RECORDS')
+        db.execute('DELETE FROM DAYLOGS')
+        db.commit()
+
+        logger.debug('New month! old information has been purged and stored in a more compact way')
+        return 0, 0
+
+
+    if abs(new_date - old_date).days < 1:
+        return recieved, send
 
     # Create new row in daylogger
     sql = 'INSERT INTO DAYLOGS (TIMESTAMP, RECIEVED, SEND) ' \
@@ -138,7 +153,7 @@ def move_old_data():
 
     logger.debug('New day! old information has been purged and stored in a more compact way')
 
-    return
+    return 0, 0
     
 
     

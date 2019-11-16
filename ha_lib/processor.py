@@ -6,7 +6,7 @@ config = None
 
 def infloop():
     # Set starting values
-    total_rx, total_tx = database.get_last_value()
+    total_rx, total_tx = database.move_old_data(*database.get_last_value())
     last_rx, last_tx = interface.recieve_values()
     delay = config.getint('NETWORK', 'measuredelay')
 
@@ -21,14 +21,13 @@ def infloop():
 
     while(True):
         # Clean up old data
-        database.move_old_data()
 
         # Recieve new values
         new_rx, new_tx = interface.recieve_values()
 
         # Calculate new values for the charts
         calc_rx, calc_tx = new_rx - last_rx, new_tx - last_tx
-        total_rx, total_tx = total_rx + calc_rx, total_tx + calc_tx
+        total_rx, total_tx = database.move_old_data(total_rx + calc_rx, total_tx + calc_tx)
         last_rx, last_tx = new_rx, new_tx
 
         # We don't want any negative values in our charts
