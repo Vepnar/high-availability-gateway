@@ -9,7 +9,7 @@ import sys
 
 client = None
 
-def enable():
+def enable(loop):
     global client
     # Check if MQTT is enabled
     config = processor.config
