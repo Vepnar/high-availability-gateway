@@ -9,7 +9,11 @@ import time
 # Here we store a global config file. all modules can access this file
 config = None
 
+# Create variables to store the total amount of network usage so the other modules can access it easily
+total_rx, total_tx = 0, 0
+
 async def measure_loop():
+    global total_rx, total_tx
     # This is the actual loop where this program loops trough all its gatherd data and processes it
     # We first start by settings up starting values
 
@@ -72,10 +76,6 @@ async def measure_loop():
         # This will send the data to adafruit so you can see the status of this program from another device
         mqtt.update_data(calc_rx, calc_tx, total_tx+total_rx)
 
-        # Now we send our total and calculated data to the mail module
-        # This modules decides if it should send an E-Mail to a modorated to take action
-        mailing.check_threshold(total_rx, total_tx, calc_rx+calc_tx)
-
         # There is also an option to disable an interface when we hit an certain threshold
         interface.check_disabletrigger(total_rx+total_tx)
 
@@ -95,7 +95,7 @@ def start():
     # After that we need to parse the config file.
     # The file that we will be parsing is "config.cfg" we print a nice debug message after we are done parsing the file.
     config = configparser.ConfigParser()
-    config.read('config.cfg')
+    config.read('_.cfg')
     logger.debug('Config loaded')
 
     # Now we start each module one by one
