@@ -238,7 +238,7 @@ async def loop():
         timestamp = int(datetime.timestamp(new_date))
 
         # Now we compare the current month with the month stored in the daily record table.
-        if new_date.month is not daily_date.month and daily_timestamp is not 0:
+        if new_date.month != daily_date.month and daily_timestamp != 0:
             # We are in a new month when they're not the same so we have to move our daily records to or monthly records and clear out all the records made today.
 
             # Here we format the values we got earlier into one new sql command.

@@ -9,7 +9,7 @@ import sys
 
 client = None
 
-def enable(loop):
+def enable():
     global client
     # Check if MQTT is enabled
     config = processor.config
@@ -55,7 +55,7 @@ def update_data(rx, tx, tt):
     # This function doesnt work when the database option is disabled
     start_values = database.get_start_value()
     if start_values[0] != 0:
-        tt_today =  tt-((start_values[1]+ start_values[2]) / 1000000.0)
+        tt_today =  tt-((start_values[0]+ start_values[1]) / 1000000.0)
 
     # Send values
     try_update_data('recievepath',rx)

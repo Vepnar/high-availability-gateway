@@ -7,7 +7,7 @@ from . import processor, logger
 from subprocess import Popen, PIPE
 from datetime import datetime
 
-def enable(loop):
+def enable():
     # Recieve config settings and format the command
     interface = processor.config.get('NETWORK','interface')
     command = f'ifconfig {interface}'
@@ -23,7 +23,7 @@ def enable(loop):
         
     logger.debug('Interface loaded')
 
-def recieve_values():
+def receive_values():
     interface = processor.config.get('NETWORK','interface')   
     command = f'ifconfig {interface}'
 
