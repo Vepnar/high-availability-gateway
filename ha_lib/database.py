@@ -16,9 +16,6 @@ def enable():
     After that we run some basic checks to confirm that everything is running like it should.
     """
     global DB
-
-    # Then we access the config which is stored in the processor module.
-    # We check if the database module is enabled and cancel the initialization when it's not.
     if not processor.config.getboolean('DATABASE', 'enabled'):
         return
 
