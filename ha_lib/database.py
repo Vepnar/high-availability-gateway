@@ -146,22 +146,17 @@ async def loop():
         return
     interval = processor.config.getint('DATABASE', 'datamoveinterval')
     if interval < 6:
-        return
-
-    # The infinite loop
+        return      
     while True:
         await asyncio.sleep(interval)
         today_timestamp, daily_timestamp = get_timestamps()
         if today_timestamp == 0:
             continue
-        # Convert dates
         today_date = datetime.fromtimestamp(today_timestamp)
         daily_date = datetime.fromtimestamp(daily_timestamp)
         received, send = get_last_value(0, 0)
         new_date = datetime.now()
         timestamp = int(datetime.timestamp(new_date))
-
-        # Check if we are in a new month.
         if new_date.month != daily_date.month and daily_timestamp != 0:
             sql = 'INSERT INTO MONTHLOGS (TIMESTAMP, RECEIVED, SEND) ' \
                 f'VALUES({timestamp}, {received}, {send});'
