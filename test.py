@@ -12,7 +12,6 @@ from colorama import Fore, Style
 TEST_FILE = './test.bin'
 INTERFACE = 'wlp2s0'
 
-
 def start_test_case(name):
     """Print information about the start of the test.
 
@@ -67,9 +66,9 @@ def easy_function_test(task, function, args, time_spent=None):
         time_spent: (float) time since beginning of function can be None when first run
     Return: (list) output of the function, new time stamp
     """
-    output = progress(task, time_spent=time_spent)
+    progress(task, time_spent=time_spent)
     try:
-        function(**args)
+        output = function(**args)
         return (output, time.time())
     except Exception as ex:
         if time_spent is None:
@@ -200,6 +199,89 @@ def test_interface():
         print(ex)
         end_test_case('Interface', last_time, success=False)
 
+def test_database():
+    """Test the database module.
+
+    Tests:
+        Importing, creating database, opening database, add special, add normal, get timestamp,
+        get last value, check new day, check new month
+    """
+    start_test_case('Database')
+    time_spent = time.time()
+    try:
+        last_time = progress('Importing')
+        from ha_lib import database, logger
+        last_time = progress('Creating database', time_spent=last_time)
+
+        # Create logger.
+        vargs = {
+            'logging_level': 4,
+            'terminal_logging': True,
+            'file_logging': False
+        }
+        logger_object = logger.Logger(**vargs)
+
+        # Create database
+        vargs = {
+            'logger' : logger_object,
+            'database_file' : TEST_FILE,
+            'enabled' : True,
+            'exit_on_crash' : False
+        }
+        if os.path.isfile(TEST_FILE):
+            os.remove(TEST_FILE)
+        database_object = database.Database(**vargs)
+
+        database_object, last_time = easy_function_test(
+            'Reopen database', database.Database, vargs, time_spent=last_time)
+
+        vargs = {
+            'received' : 321,
+            'send' : 123,
+            'timestamp' : None,
+            'special' : 1,
+            'throw': True
+        }
+        _, last_time = easy_function_test(
+            'Add special', database_object.add_row, vargs, time_spent=last_time)
+        vargs = {
+            'received': 43,
+            'send': 12,
+            'timestamp': int(time.time()) - 10368000,
+            'special': 0,
+            'throw': True,
+        }
+        _, last_time = easy_function_test(
+            'Add normal', database_object.add_row, vargs, time_spent=last_time)
+
+        _, last_time = easy_function_test(
+            'Get timestamp', database_object.get_timestamps, {}, time_spent=last_time)
+
+        vargs = {
+            'received_bytes' : 0,
+            'send_bytes' : 0,
+            'throw' : True,
+        }
+        _, last_time = easy_function_test(
+            'Get last value', database_object.get_last_value, vargs, time_spent=last_time)
+
+        vargs = {
+            'throw' : True
+        }
+        _, last_time = easy_function_test(
+            'Check new day', database_object.check_new_day, vargs, time_spent=last_time)
+
+        _, last_time = easy_function_test(
+            'Check new month', database_object.check_new_month, vargs, time_spent=last_time)
+
+        if os.path.isfile(TEST_FILE):
+            os.remove(TEST_FILE)
+        end_test_case('Database', time_spent)
+    except Exception as ex:
+        print(ex)
+        end_test_case('Database', time_spent, success=False)
+
 if __name__ == '__main__':
     test_logger()
     test_interface()
+    test_database()
