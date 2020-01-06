@@ -1,43 +1,75 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Author: Arjan de Haan (Vepnar)
+"""Contains class to log information to a file or to the terminal.
+Author: Arjan de Haan (Vepnar),
+Last edited: 6 January 2020
+"""
 
-from colorama import Fore, Style
 from datetime import datetime
-from . import processor
+from colorama import Fore, Style
 
-def default(msg, level, icon):
+class Logger:
+    """Log information to terminal or file"""
 
-    # Recieve time and format it
-    now = datetime.now()
-    time = now.strftime('%H:%M:%S')
-    date = now.strftime('%d %B %Y %H:%M:%S')
+    def __init__(self, logging_level, terminal_logging, file_logging, logging_file=None):
+        self.logging_level = logging_level
+        self.terminal_logging = terminal_logging
+        self.file_logging = file_logging
 
-    # Log in the terminal when it is allowed
-    if processor.config.getint('LOGGING', 'level') >= level and processor.config.getboolean('LOGGING','enabled'):
-        message = f'{time} {Style.BRIGHT}{icon}{Style.RESET_ALL}: {msg}'
-        print(message)
+        if logging_file is None and file_logging:
+            terminal_logging = False
+            self.err('Logging file not set')
+        if file_logging:
+            self.logging_file = open(logging_file, 'a')
 
-    #TODO add file logging
+    def default(self, msg, level, icon):
+        """Format information into a beautiful message.
 
-# Log level 4 (debug)
-def debug(msg):
-    default(msg, 4, Fore.BLUE + 'Debug')
+        Args:
+            msg: String of message to print.
+            level: level to of the message.
+            icon: special icon of the message usually a colour with some word.
+        """
 
-# Log leven 3 (Info)
-def log(msg):
-    default(msg, 3, Fore.GREEN +'Info ')
+        now = datetime.now()
+        time = now.strftime('%H:%M:%S')
+        date = now.strftime('%d %B %Y %H:%M:%S')
 
-# Log level 2 (Warning)
-def warn(msg):
-    default(msg, 2, Fore.YELLOW + 'Warn ')
+        # Log in the terminal when it is allowed
+        if self.logging_level >= level and self.terminal_logging:
+            message = f'{time} {Style.BRIGHT}{icon}{Style.RESET_ALL}: {msg}'
+            print(message)
 
-# Log level 1 (Error)
-def err(msg):
-    default(msg, 1, Fore.RED + 'Error')
+        if self.logging_level >= level and self.file_logging:
+            message = f'[{date}][{level}]# {msg}\n'
+            self.logging_file.write(message)
+            self.logging_file.flush()
 
-if __name__ == '__main__':
-    debug('Test debug')
-    log('Test Log')
-    warn('Test warn')
-    err('Test err')
+
+    # Log level 4 (debug)
+    def debug(self, msg):
+        """Print debug message"""
+        self.default(msg, 4, Fore.BLUE + 'Debug')
+
+    # Log level 3 (Info)
+    def log(self, msg):
+        """Print log message"""
+        self.default(msg, 3, Fore.GREEN +'Info')
+
+    # Log level 2 (Warning)
+    def warn(self, msg):
+        """Print warning message"""
+        self.default(msg, 2, Fore.YELLOW + 'Warn')
+
+    # Log level 1 (Error)
+    def err(self, msg):
+        """Print error message"""
+        self.default(msg, 1, Fore.RED + 'Error')
+
+    def __del__(self):
+        """Close logging file"""
+        if self.file_logging:
+            try:
+                self.logging_file.close()
+            except:
+                pass
