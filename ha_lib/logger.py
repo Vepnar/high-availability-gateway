@@ -18,10 +18,12 @@ class Logger:
         logging_file: (str) string to path it should log to. can be None
     """
 
-    def __init__(self, logging_level, terminal_logging, file_logging, logging_file=None):
+    def __init__(
+        self, logging_level, terminal_logging, file_logging, logging_file=None, debug=False):
         self.logging_level = logging_level
         self.terminal_logging = terminal_logging
         self.file_logging = file_logging
+        self.debug = True
 
         if logging_file is None and file_logging:
             terminal_logging = False

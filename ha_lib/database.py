@@ -22,10 +22,11 @@ class Database:
     """
 
     def __init__(self, logger, enabled, database_file,
-                 exit_on_crash=True, data_update_interval=36000):
+                 exit_on_crash=True, data_update_interval=36000, debug=False):
         self.logger = logger
         self.enabled = enabled
         self.data_update_interval = data_update_interval
+        self.debug = debug
 
         if not enabled:
             return
@@ -54,14 +55,14 @@ class Database:
             self.logger.debug('Database loaded')
 
         except sqlite3.Error:
-            if exit_on_crash:
+            if not self.debug:
                 sys.exit(-1)
             else:
-                raise Exception
+                raise Exception('Can not open/create a database file')
             self.logger.err(
                 'Can\'t open the database. Check if this user has permissions to write')
 
-    def get_last_value(self, received_bytes=0, send_bytes=0, throw=False):
+    def get_last_value(self, received_bytes=0, send_bytes=0):
         """Receive total amount of network usage from the database.
 
         Will access RECORDS table in the database to receive data about the total usage.
@@ -77,8 +78,8 @@ class Database:
         """
 
         if not self.enabled:
-            if throw:
-                raise Exception
+            if self.debug:
+                raise Exception('Module is disabled')
             return received_bytes, send_bytes
 
         sql = 'SELECT RECEIVED, SEND FROM RECORDS WHERE TIMESTAMP =\
@@ -140,7 +141,7 @@ class Database:
             daily = output[0]
         return record, daily
 
-    def add_row(self, received, send, timestamp=None, special=0, throw=False):
+    def add_row(self, received, send, timestamp=None, special=0):
         """Adds new information to the database
 
         Args:
@@ -153,6 +154,8 @@ class Database:
             throw: throw exception when an error occurs
         """
         if not self.enabled:
+            if self.debug:
+                raise Exception('Module is not enabled')
             return False
 
         if timestamp is None:
@@ -165,10 +168,9 @@ class Database:
             self.database.commit()
             return True
         except sqlite3.Error:
-            if not throw:
-                self.logger.warn('Couldn\'t write to the database')
-            else:
-                raise Exception
+            if self.debug:
+                raise Exception('Can not execute sql command')
+            self.logger.warn('Couldn\'t write to the database')
         return False
 
     async def loop(self):
@@ -185,7 +187,7 @@ class Database:
             if not self.check_new_month():
                 self.check_new_day()
 
-    def check_new_day(self, throw=False):
+    def check_new_day(self):
         """Function to check if we are in a new day
         Args:
             throw: (boolean) throw exception when something goes wrong.
@@ -196,18 +198,18 @@ class Database:
         timestamp = int(time.time())
         new_date = datetime.now()
 
-        if throw: # Set 32 days back for the testing module
+        if self.debug: # Set 32 days back for the testing module
             timestamp -= 165888000
 
         if record_timestamp == 0:
-            if throw:
+            if self.debug:
                 raise sqlite3.Error
             return False
 
         # Check if we are in a new day.
         if abs(new_date - record_date).days < 1:
-            if throw:
-                raise sqlite3.Error
+            if self.debug:
+                raise Exception('Not in a new day')
             return False
 
         sql = 'INSERT INTO DAYLOGS (TIMESTAMP, RECEIVED, SEND) ' \
@@ -221,8 +223,8 @@ class Database:
             return True
         except sqlite3.Error:
             self.logger.warn('Couldn\'t write to the database')
-            if throw:
-                raise sqlite3.Error
+            if self.debug:
+                raise Exception('can not write to database file')
         return False
 
     def check_new_month(self, throw=False):
@@ -238,8 +240,8 @@ class Database:
         timestamp = int(time.time())
 
         if not new_date.month != daily_date.month and daily_timestamp != 0:
-            if throw:
-                raise Exception
+            if self.debug:
+                raise Exception('Not in a new month')
             return False
 
         sql = 'INSERT INTO MONTHLOGS (TIMESTAMP, RECEIVED, SEND) ' \
@@ -254,6 +256,6 @@ class Database:
             return True
         except sqlite3.Error:
             self.logger.warn('Couldn\'t write to the database')
-            if throw:
-                raise sqlite3.Error
+            if self.debug:
+                raise Exception('Can not write to the database')
             return False

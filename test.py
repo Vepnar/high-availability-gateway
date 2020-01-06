@@ -21,7 +21,6 @@ def start_test_case(name):
     print(
         f'=== {Fore.MAGENTA}Starting testing: {Style.BRIGHT}{name}{Style.RESET_ALL} ===')
 
-
 def progress(task, time_spent=None):
     """Print information about current progress.
 
@@ -77,7 +76,6 @@ def easy_function_test(task, function, args, time_spent=None):
         end_test_case('Logger', time_spent, success=False)
         return (None, time.time())
 
-
 def test_logger():
     """Testing the logger module:
 
@@ -99,7 +97,8 @@ def test_logger():
         vargs = {
             'logging_level': 4,
             'terminal_logging': True,
-            'file_logging': False
+            'file_logging': False,
+            'debug' : True
         }
         logger_object = logger.Logger(**vargs)
 
@@ -119,7 +118,8 @@ def test_logger():
             'logging_level': 4,
             'terminal_logging': False,
             'file_logging': True,
-            'logging_file': TEST_FILE
+            'logging_file': TEST_FILE,
+            'debug' : True
         }
         if os.path.isfile(TEST_FILE):
             os.remove(TEST_FILE)
@@ -171,7 +171,7 @@ def test_interface():
         vargs = {
             'interface_name': INTERFACE,
             'logger': logger_object,
-            'exit_on_crash': False,
+            'debug': True,
             'disable_trigger': True,
             'disable_threshold': 1,
             'disable_command': "echo ''",
@@ -217,7 +217,8 @@ def test_database():
         vargs = {
             'logging_level': 4,
             'terminal_logging': True,
-            'file_logging': False
+            'file_logging': False,
+            'debug' : True
         }
         logger_object = logger.Logger(**vargs)
 
@@ -226,7 +227,7 @@ def test_database():
             'logger' : logger_object,
             'database_file' : TEST_FILE,
             'enabled' : True,
-            'exit_on_crash' : False
+            'debug' : True
         }
         if os.path.isfile(TEST_FILE):
             os.remove(TEST_FILE)
@@ -240,7 +241,6 @@ def test_database():
             'send' : 123,
             'timestamp' : None,
             'special' : 1,
-            'throw': True
         }
         _, last_time = easy_function_test(
             'Add special', database_object.add_row, vargs, time_spent=last_time)
@@ -249,7 +249,6 @@ def test_database():
             'send': 12,
             'timestamp': int(time.time()) - 10368000,
             'special': 0,
-            'throw': True,
         }
         _, last_time = easy_function_test(
             'Add normal', database_object.add_row, vargs, time_spent=last_time)
@@ -260,19 +259,15 @@ def test_database():
         vargs = {
             'received_bytes' : 0,
             'send_bytes' : 0,
-            'throw' : True,
         }
         _, last_time = easy_function_test(
             'Get last value', database_object.get_last_value, vargs, time_spent=last_time)
 
-        vargs = {
-            'throw' : True
-        }
         _, last_time = easy_function_test(
-            'Check new day', database_object.check_new_day, vargs, time_spent=last_time)
+            'Check new day', database_object.check_new_day, {}, time_spent=last_time)
 
         _, last_time = easy_function_test(
-            'Check new month', database_object.check_new_month, vargs, time_spent=last_time)
+            'Check new month', database_object.check_new_month, {}, time_spent=last_time)
 
         if os.path.isfile(TEST_FILE):
             os.remove(TEST_FILE)
