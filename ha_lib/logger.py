@@ -9,7 +9,14 @@ from datetime import datetime
 from colorama import Fore, Style
 
 class Logger:
-    """Log information to terminal or file"""
+    """Log information to terminal or file.
+
+    Args:
+        logging_level: (1-4)
+        terminal_logging: (boolean)
+        file_logging: (boolean)
+        logging_file: (str) string to path it should log to. can be None
+    """
 
     def __init__(self, logging_level, terminal_logging, file_logging, logging_file=None):
         self.logging_level = logging_level
