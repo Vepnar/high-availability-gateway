@@ -7,10 +7,11 @@ Last edited: 6 January 2020
 
 import os
 import time
-import traceback
+import configparser
 from colorama import Fore, Style
 
 TEST_FILE = './test.bin'
+CONFIG_FILE = './test.cfg'
 INTERFACE = 'wlp2s0'
 
 def start_test_case(name):
@@ -150,7 +151,7 @@ def test_interface():
     """Testing the interface module.
 
     Tests:
-        Importing, Creating objects, Receive values, Format bytes, Print usage, Disable trigger.
+        Importing, Creating objects, Receive values, Format bytes, Print usage & Disable trigger.
     """
     start_test_case('Interface')
     time_spent = time.time()
@@ -197,7 +198,7 @@ def test_interface():
         end_test_case('Interface', time_spent)
 
     except Exception as ex:
-        traceback.print_exc()
+        print(ex)
         end_test_case('Interface', last_time, success=False)
 
 def test_database():
@@ -205,7 +206,7 @@ def test_database():
 
     Tests:
         Importing, creating database, opening database, add special, add normal, get timestamp,
-        get last value, check new day, check new month
+        get last value, check new day & check new month
     """
     start_test_case('Database')
     time_spent = time.time()
@@ -277,7 +278,62 @@ def test_database():
         print(ex)
         end_test_case('Database', time_spent, success=False)
 
+def test_email():
+    """Test the mailing module.
+
+    Tests:
+        Importing, Open config, Creating objects, Formatting email, Connecting smtp,
+        logging in smtp & sending email
+    """
+    start_test_case('Mailing')
+    time_spent = time.time()
+
+    try:
+        last_time = progress('Importing')
+        from ha_lib import logger, mailing
+
+        last_time = progress('Opening config', time_spent=last_time)
+        config = configparser.ConfigParser()
+
+        config.read(CONFIG_FILE)
+        last_time = progress('Creating objects')
+
+        # Create logger.
+        vargs = {
+            'logging_level': 4,
+            'terminal_logging': True,
+            'file_logging': False,
+            'debugging': True}
+        logger_object = logger.Logger(**vargs)
+
+        # Create mailing.
+        vargs = {
+            'logger': logger_object,
+            'config': config,
+            'debugging': True
+        }
+        mailing_object = mailing.Mailing(**vargs)
+        message, last_time = easy_function_test(
+            'Format Email', mailing_object.format_document,
+            {'received' : 0, 'send' : 0}, time_spent=last_time)
+
+        server, last_time = easy_function_test(
+            'Connect to smtp', mailing_object.connect_to_smtp, {}, time_spent=last_time)
+
+        _, last_time = easy_function_test(
+            'Login to smtp', mailing_object.login_to_smtp, {'server':server}, time_spent=last_time)
+
+        vargs = {'server':server, 'message': message}
+        _, last_time = easy_function_test(
+            'Sending email', mailing_object.send_email, vargs, time_spent=last_time)
+
+        end_test_case('Mailing', time_spent)
+    except Exception as ex:
+        print(ex)
+        end_test_case('Mailing', time_spent, success=False)
+
 if __name__ == '__main__':
     test_logger()
     test_interface()
     test_database()
+    #test_email() TODO
