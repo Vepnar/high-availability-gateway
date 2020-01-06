@@ -42,6 +42,8 @@ class Interface:
             logger.err("Interface is not found")
             if exit_on_crash:
                 sys.exit(1)
+            else:
+                raise Exception
         logger.debug('Interface loaded')
 
     def receive_values(self):
