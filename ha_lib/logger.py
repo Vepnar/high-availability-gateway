@@ -19,11 +19,11 @@ class Logger:
     """
 
     def __init__(
-        self, logging_level, terminal_logging, file_logging, logging_file=None, debug=False):
+        self, logging_level, terminal_logging, file_logging, logging_file=None, debugging=False):
         self.logging_level = logging_level
         self.terminal_logging = terminal_logging
         self.file_logging = file_logging
-        self.debug = True
+        self.debugging = True
 
         if logging_file is None and file_logging:
             terminal_logging = False
@@ -47,6 +47,8 @@ class Logger:
         # Log in the terminal when it is allowed
         if self.logging_level >= level and self.terminal_logging:
             message = f'{time} {Style.BRIGHT}{icon}{Style.RESET_ALL}: {msg}'
+            if self.debugging:
+                return
             print(message)
 
         if self.logging_level >= level and self.file_logging:

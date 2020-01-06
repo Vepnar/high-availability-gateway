@@ -22,12 +22,12 @@ class Interface:
         disable_command: (str) in bash
         disable_timer: (int) in seconds
     """
-    def __init__(self, interface_name, logger, debug=False, disable_trigger=False,
+    def __init__(self, interface_name, logger, debugging=False, disable_trigger=False,
                  disable_threshold=0, disable_command='', disable_timer=0):
         self.interface_name = interface_name
         self.logger = logger
         self.disable_trigger = disable_trigger
-        self.debug = debug
+        self.debugging = debugging
         if disable_trigger:
             self.disable_threshold = disable_threshold
             self.disable_command = disable_command
@@ -39,7 +39,7 @@ class Interface:
 
         # Check if there are any errors found the the terminal output
         if ' error ' in command_output:
-            if self.debug:
+            if self.debugging:
                 raise Exception('Interface not found')
             logger.err("Interface is not found")
             sys.exit(1)

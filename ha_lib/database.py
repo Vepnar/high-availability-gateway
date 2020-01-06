@@ -22,11 +22,11 @@ class Database:
     """
 
     def __init__(self, logger, enabled, database_file,
-                 exit_on_crash=True, data_update_interval=36000, debug=False):
+                 exit_on_crash=True, data_update_interval=36000, debugging=False):
         self.logger = logger
         self.enabled = enabled
         self.data_update_interval = data_update_interval
-        self.debug = debug
+        self.debugging = debugging
 
         if not enabled:
             return
@@ -55,7 +55,7 @@ class Database:
             self.logger.debug('Database loaded')
 
         except sqlite3.Error:
-            if not self.debug:
+            if not self.debugging:
                 sys.exit(-1)
             else:
                 raise Exception('Can not open/create a database file')
@@ -78,7 +78,7 @@ class Database:
         """
 
         if not self.enabled:
-            if self.debug:
+            if self.debugging:
                 raise Exception('Module is disabled')
             return received_bytes, send_bytes
 
@@ -154,7 +154,7 @@ class Database:
             throw: throw exception when an error occurs
         """
         if not self.enabled:
-            if self.debug:
+            if self.debugging:
                 raise Exception('Module is not enabled')
             return False
 
@@ -168,7 +168,7 @@ class Database:
             self.database.commit()
             return True
         except sqlite3.Error:
-            if self.debug:
+            if self.debugging:
                 raise Exception('Can not execute sql command')
             self.logger.warn('Couldn\'t write to the database')
         return False
@@ -198,17 +198,17 @@ class Database:
         timestamp = int(time.time())
         new_date = datetime.now()
 
-        if self.debug: # Set 32 days back for the testing module
+        if self.debugging: # Set 32 days back for the testing module
             timestamp -= 165888000
 
         if record_timestamp == 0:
-            if self.debug:
+            if self.debugging:
                 raise sqlite3.Error
             return False
 
         # Check if we are in a new day.
         if abs(new_date - record_date).days < 1:
-            if self.debug:
+            if self.debugging:
                 raise Exception('Not in a new day')
             return False
 
@@ -223,7 +223,7 @@ class Database:
             return True
         except sqlite3.Error:
             self.logger.warn('Couldn\'t write to the database')
-            if self.debug:
+            if self.debugging:
                 raise Exception('can not write to database file')
         return False
 
@@ -240,7 +240,7 @@ class Database:
         timestamp = int(time.time())
 
         if not new_date.month != daily_date.month and daily_timestamp != 0:
-            if self.debug:
+            if self.debugging:
                 raise Exception('Not in a new month')
             return False
 
@@ -256,6 +256,6 @@ class Database:
             return True
         except sqlite3.Error:
             self.logger.warn('Couldn\'t write to the database')
-            if self.debug:
+            if self.debugging:
                 raise Exception('Can not write to the database')
             return False

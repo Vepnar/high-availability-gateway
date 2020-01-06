@@ -7,6 +7,7 @@ Last edited: 6 January 2020
 
 import os
 import time
+import traceback
 from colorama import Fore, Style
 
 TEST_FILE = './test.bin'
@@ -98,7 +99,7 @@ def test_logger():
             'logging_level': 4,
             'terminal_logging': True,
             'file_logging': False,
-            'debug' : True
+            'debugging' : True
         }
         logger_object = logger.Logger(**vargs)
 
@@ -119,7 +120,7 @@ def test_logger():
             'terminal_logging': False,
             'file_logging': True,
             'logging_file': TEST_FILE,
-            'debug' : True
+            'debugging' : True
         }
         if os.path.isfile(TEST_FILE):
             os.remove(TEST_FILE)
@@ -171,7 +172,7 @@ def test_interface():
         vargs = {
             'interface_name': INTERFACE,
             'logger': logger_object,
-            'debug': True,
+            'debugging': True,
             'disable_trigger': True,
             'disable_threshold': 1,
             'disable_command': "echo ''",
@@ -196,7 +197,7 @@ def test_interface():
         end_test_case('Interface', time_spent)
 
     except Exception as ex:
-        print(ex)
+        traceback.print_exc()
         end_test_case('Interface', last_time, success=False)
 
 def test_database():
@@ -218,7 +219,7 @@ def test_database():
             'logging_level': 4,
             'terminal_logging': True,
             'file_logging': False,
-            'debug' : True
+            'debugging' : True
         }
         logger_object = logger.Logger(**vargs)
 
@@ -227,7 +228,7 @@ def test_database():
             'logger' : logger_object,
             'database_file' : TEST_FILE,
             'enabled' : True,
-            'debug' : True
+            'debugging' : True
         }
         if os.path.isfile(TEST_FILE):
             os.remove(TEST_FILE)
