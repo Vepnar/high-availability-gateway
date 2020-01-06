@@ -10,6 +10,7 @@ import time
 from colorama import Fore, Style
 
 TEST_FILE = './test.bin'
+INTERFACE = 'wlp2s0'
 
 
 def start_test_case(name):
@@ -72,23 +73,22 @@ def easy_function_test(task, function, args, time_spent=None):
         return (output, time.time())
     except Exception as ex:
         if time_spent is None:
-            time_spent = 0
-        else:
-            time_spent = time.time() - time_spent
+            time_spent = time.time()
         print(ex)
         end_test_case('Logger', time_spent, success=False)
         return (None, time.time())
 
 
 def test_logger():
-    """Terminal logger tester:
-        Tests:
-            Init test:
-                Importing module & creating object.
-            Terminal message testing:
-                Debug, log , warning & Error.
-            File logging testing:
-                Debug, log, warning & Error.
+    """Testing the logger module:
+
+    Tests:
+        Init test:
+            Importing module & creating object.
+        Terminal message testing:
+            Debug, log , warning & Error.
+        File logging testing:
+            Debug, log, warning & Error.
     """
     # Init test.
     start_test_case('Logger')
@@ -125,7 +125,8 @@ def test_logger():
         if os.path.isfile(TEST_FILE):
             os.remove(TEST_FILE)
 
-        last_time = progress('Creating file testing object', last_time)
+        last_time = progress(
+            'Creating file testing object', time_spent=last_time)
         logger_object = logger.Logger(**vargs)
         vargs = {'msg': 'test'}
         _, last_time = easy_function_test(
@@ -145,5 +146,61 @@ def test_logger():
         end_test_case('Logging', time_spent, success=False)
 
 
+def test_interface():
+    """Testing the interface module.
+
+    Tests:
+        Importing, Creating objects, Receive values, Format bytes, Print usage, Disable trigger.
+    """
+    start_test_case('Interface')
+    time_spent = time.time()
+
+    try:
+        last_time = progress('Importing')
+        from ha_lib import interface, logger
+        last_time = progress('Creating Objects', time_spent=last_time)
+
+        # Create logger.
+        vargs = {
+            'logging_level': 4,
+            'terminal_logging': True,
+            'file_logging': False
+        }
+        logger_object = logger.Logger(**vargs)
+
+        # Create Interface.
+        vargs = {
+            'interface_name': INTERFACE,
+            'logger': logger_object,
+            'exit_on_crash': False,
+            'disable_trigger': True,
+            'disable_threshold': 1,
+            'disable_command': "echo ''",
+            'disable_timer': -1
+        }
+        interface_object = interface.Interface(**vargs)
+
+        _, last_time = easy_function_test(
+            'Receive values', interface_object.receive_values, {}, time_spent=last_time)
+        _, last_time = easy_function_test(
+            'Byte formatter', interface.byte_formatter,
+            {'value': 10*10 ^ 16}, time_spent=last_time)
+        _, last_time = easy_function_test(
+            'Print usage', interface_object.print_usage,
+            {'rx': 54321, 'tx': 12345}, time_spent=last_time)
+        out, last_time = easy_function_test(
+            'Disable trigger', interface_object.check_disable_trigger,
+            {'total': 100}, time_spent=last_time)
+
+        if not out:
+            end_test_case('Disable trigger', last_time, success=False)
+        end_test_case('Interface', time_spent)
+
+    except Exception as ex:
+        print(ex)
+        end_test_case('Interface', last_time, success=False)
+
+
 if __name__ == '__main__':
     test_logger()
+    test_interface()
