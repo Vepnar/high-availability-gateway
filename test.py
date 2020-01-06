@@ -187,7 +187,7 @@ def test_interface():
             {'value': 10*10 ^ 16}, time_spent=last_time)
         _, last_time = easy_function_test(
             'Print usage', interface_object.print_usage,
-            {'rx': 54321, 'tx': 12345}, time_spent=last_time)
+            {'received': 54321, 'send': 12345}, time_spent=last_time)
         out, last_time = easy_function_test(
             'Disable trigger', interface_object.check_disable_trigger,
             {'total': 100}, time_spent=last_time)
@@ -199,7 +199,6 @@ def test_interface():
     except Exception as ex:
         print(ex)
         end_test_case('Interface', last_time, success=False)
-
 
 if __name__ == '__main__':
     test_logger()
