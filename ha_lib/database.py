@@ -68,8 +68,8 @@ def get_last_value(received_bytes=0, send_bytes=0):
         output = DB.execute(sql).fetchone()
         if output is None:
             return 0, 0
-        return output[0], output[1]
-    return output[0], output[1]
+        return received_bytes, send_bytes
+    return received_bytes, send_bytes
 
 
 def get_start_value():

@@ -28,7 +28,7 @@ def enable():
     # Test email formatter
     # There could be some problems with the config you didn't configure right
     try:
-        format_email(0, 0, 0)
+        format_email()
     except Exception as e:
         processor.config.set('EMAIL', 'enabled', 'False')
         print(e)

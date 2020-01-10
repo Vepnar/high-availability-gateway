@@ -64,10 +64,10 @@ async def measure_loop():
         # After that we add our calculated values and add them to our total network usage.
         # We send the sum of those values to the database wo checks if there is a new month and check if our counters should be resetted
         total_rx, total_tx = database.get_last_value(
-            total_rx+calc_rx, total_tx+calc_tx)
-
+            received_bytes=total_rx+calc_rx, send_bytes=total_tx+calc_tx)
         # Set our new measurements as our old measurements
         last_rx, last_tx = new_rx, new_tx
+        
 
         # Add our new total network usage to our database
         database.add_row(total_rx, total_tx)
@@ -95,7 +95,7 @@ def start():
     # After that we need to parse the config file.
     # The file that we will be parsing is "config.cfg" we print a nice debug message after we are done parsing the file.
     config = configparser.ConfigParser()
-    config.read('_.cfg')
+    config.read('config.cfg')
     logger.debug('Config loaded')
 
     # Now we start each module one by one

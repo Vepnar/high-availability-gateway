@@ -65,13 +65,11 @@ def byte_formatter(value):
     # Could add more options here but only in the power of 3
     byte_units = ['B ', 'kB', 'MB', 'GB', 'TB']
     options = len(byte_units)
-    size = len(str(value))
-
     for i in reversed(range(options)):
         if value >= 1000 ** i:
             # Shrink values and return them
             reduced = value / 1000 ** i
-            return reduced , byte_units[i]
+            return reduced, byte_units[i]
     return value, byte_units[0]
 
 def print_usage(rx, tx):
