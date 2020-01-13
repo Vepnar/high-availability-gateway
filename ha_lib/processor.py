@@ -1,6 +1,7 @@
 # Author: Arjan de Haan (Vepnar)
 
 from . import logger, database, interface, mailing, mqtt
+from subprocess import Popen, PIPE
 from contextlib import suppress
 import configparser
 import asyncio
@@ -84,6 +85,11 @@ async def measure_loop():
 
         # And now the last thing!!! We wait a set amount of time before we start this loop again
         await asyncio.sleep(delay)
+
+def restart_system():
+    # Temponary fix until version 2 is released
+    command = 'shutdown -r now'
+    pipe = Popen(command, shell=True, stdout=PIPE)
 
 def start():
     # This is where it all starts

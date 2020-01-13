@@ -167,6 +167,7 @@ async def loop():
                 DB.commit()
                 logger.debug(
                     'New month! old information has been purged and stored in a more compact way')
+                processor.restart_system()
             except sqlite3.Error:
                 logger.warn('Couldn\'t write to the database')
             continue
